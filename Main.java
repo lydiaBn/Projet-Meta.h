@@ -7,14 +7,14 @@ public class Main {
     public static void main(String[] args) {
         // generation automatique
         // Déclaration du nombre d'objets et de sacs à dos
-        int nbObjets = 10; // Nombre d'objets quelconque
-        int nbSacs = 3; // Nombre de sacs quelconque
+        int nbObjets = 6; // Nombre d'objets quelconque
+        int nbSacs =3; // Nombre de sacs quelconque
 
         // Génération aléatoire des poids et des capacités
         Random random = new Random();
         List<Objet> objets = new ArrayList<>();
         List<SacADos> sacs = new ArrayList<>();
-
+        List<SacADos> sacs1 = new ArrayList<>();
         int sommePoids = 0;
         int sommeCapacites = 0;
 
@@ -24,6 +24,7 @@ public class Main {
             int valeur = random.nextInt(20) + 1; // Valeur aléatoire entre 1 et 20
             sommePoids += poids;
             objets.add(new Objet(poids, valeur,i));
+            
         }
 
         // Génération aléatoire des sacs à dos
@@ -31,6 +32,8 @@ public class Main {
             int capacite = random.nextInt(11) + 10; // Capacité aléatoire légèrement supérieure à la somme des poids
             sommeCapacites += capacite;
             sacs.add(new SacADos(capacite,i));
+            sacs1.add(new SacADos(capacite,i));
+            
         }
         // Assurer que la somme des capacités des sacs est supérieure ou égale à la
         // somme des poids des objets
@@ -53,23 +56,50 @@ public class Main {
             System.out.println("Capacité : " + sac.capaciteMax);
         }
         int x = sommeCapacites - sommePoids;
-        System.out.println("Capacité -poids: " + x);
+        System.out.println("Capacité - poids: " + x);
         
-        System.out.println("dfs");
+        long startTime ,endTime,duration1,duration2,duration3;
         DFS dfs = new DFS();
-  
-        dfs.dfs(objets, sacs);
-        
-        System.out.println("A*");
+        BFS bfs = new BFS();
         A a = new A();
        
-        a.a(objets, sacs);
+        System.out.println("dfs");
+        startTime = System.nanoTime();
+        dfs.dfs(objets, sacs);
+        endTime = System.nanoTime();
+        duration1 = (endTime - startTime);
+        
+        
+        System.out.println("bfs");
+        startTime = System.nanoTime();
+        bfs.bfs(objets, sacs);
+        endTime = System.nanoTime();
+        duration2 = (endTime - startTime);
 
-          // Exemple d'utilisation de l'algorithme DFS
-          System.out.println("bfs");
-          BFS bfs = new BFS();
+        System.out.println("A*");
+        startTime = System.nanoTime();
+        a.a(objets, sacs);
+        endTime = System.nanoTime();
+        duration3 = (endTime - startTime);
+        
+       
+        
+        
+       
+        System.out.println("Temps d'exécution DFS: " + duration1 + " nanosecondes");
+        System.out.println("Temps d'exécution BFS: " + duration2 + " nanosecondes");
+        System.out.println("Temps d'exécution A*: " + duration3 + " nanosecondes");
+       
+
+           
+        
+      
+        
+        
   
-          bfs.bfs(objets, sacs);
+        
+        
+        
   
        
     }

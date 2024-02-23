@@ -13,18 +13,20 @@ public class BFS {
             ferme.add(etat);
             // Vérifier si l'état actuel est une solution
             if (estSolution(etat, objets)) {
-               
-                afficherSolution(etat); 
+
+                afficherSolution(etat);
                 return;
-                
+
             }
             // Générer les états suivants et les ajouter à la file
             List<List<SacADos>> succ = successuers(etat, objets);
             for (List<SacADos> s : succ) {
                 if (!containsState(ferme, s)) {
+                    //System.out.println("etat ajouté à ouvert");
+                    //afficherDEtat(s);
                     queue.add(s);
-                } 
-                
+                }
+
             }
         }
         System.out.println("pas de solution");
@@ -33,19 +35,23 @@ public class BFS {
     // Vérifie si l'état actuel est une solution
     private boolean estSolution(List<SacADos> etat, List<Objet> objets) {
         // Vérifie si tous les objets ont été placés dans les sacs à dos
+
         for (Objet objet : objets) {
             boolean estPlace = false;
             for (SacADos sac : etat) {
-                if (sac.contient(objet)) {
-                    estPlace = true;
-                    break;
+                for (Objet o : sac.objets) {
+                    if (o.id == objet.id) {
+                        estPlace = true;
+                        break;
+                    }
                 }
             }
+
             if (!estPlace) {
                 return false;
             }
         }
-        // Implémentez d'autres critères de solution spécifiques selon vos besoins
+
         return true;
     }
 
@@ -53,26 +59,27 @@ public class BFS {
     private void afficherSolution(List<SacADos> etat) {
         System.out.println("Solution trouvée :");
         for (SacADos sac : etat) {
-            System.out.println("Sac à dos : Capacité = " + sac.capaciteMax);
+            System.out.println("Sac à dos " + sac.id + ": Capacité = " + sac.capaciteMax);
             for (Objet objet : sac.objets) {
-                System.out.println("   Objet : Poids = " + objet.poids + ", Valeur = " + objet.valeur);
+                System.out.println("   Objet :" + objet.id + " Poids = " + objet.poids + ", Valeur = " + objet.valeur);
             }
         }
-        // Implémentez d'autres actions à effectuer lors de la découverte d'une solution
+
     }
 
-     // for test purposes 
-    // Afficher etat produts et ajouté aux successurs 
+    // for test purposes
+    // Afficher etat produts et ajouté aux successurs
     private void afficherDEtat(List<SacADos> etat) {
-        System.out.println("Etat crée et ajouté :");
+        // System.out.println("Etat crée et ajouté :");
         for (SacADos sac : etat) {
-            System.out.println("Sac à dos : Capacité = " + sac.capaciteMax);
+            System.out.println("Sac à dos " + sac.id + " capacite=" + sac.capaciteMax);
             for (Objet objet : sac.objets) {
-                System.out.println("   Objet : Poids = " + objet.poids + ", Valeur = " + objet.valeur);
+                System.out.println("   Objet " + objet.id + ": Poids = " + objet.poids + ", Valeur = " + objet.valeur);
             }
         }
 
     }
+
     private List<List<SacADos>> successuers(List<SacADos> etat, List<Objet> objets) {
         List<List<SacADos>> enfants = new ArrayList<>();
         boolean ajoute = false;
@@ -96,7 +103,8 @@ public class BFS {
                             SacADos nouveauSac = new SacADos(s.capaciteMax, s.id);
 
                             for (Objet o : s.objets) {
-                                nouveauSac.objets.add(o);
+                                Objet nouveauObjet = new Objet(o.poids, o.valeur, o.id);
+                                nouveauSac.objets.add(nouveauObjet);
                             }
                             nouvelEtat.add(nouveauSac);
                         }
@@ -119,12 +127,25 @@ public class BFS {
 
     }
 
-    
+    // pour verifier si un objet donné est deja placé dans l'un des sacs d'un etat
+    private boolean contenu_etat(List<SacADos> etat, Objet objet) {
+        boolean trouve = false;
+        for (SacADos sac : etat) {// on parcours les sacs de l'etat
+            for (Objet o : sac.objets) { // on parcours les objets de chaque sac
+                if (o.id == objet.id) {// si on trouve un objet avec le meme id alors on retouren vrai
+                    trouve = true;
+                    break;
+                }
+            }
+        }
+
+        return trouve;
+    }
 
     public boolean containsState(List<List<SacADos>> etatsVisistes, List<SacADos> etat) {
 
         for (List<SacADos> e : etatsVisistes) {
-           
+
             if (identiques(e, etat)) {
                 return true;
             }
@@ -134,35 +155,39 @@ public class BFS {
 
     public boolean identiques(List<SacADos> l1, List<SacADos> l2) {
 
-        // Créer des copies des listes pour ne pas les modifier
-        List<SacADos> copyL1 = new ArrayList<>(l1);
-        List<SacADos> copyL2 = new ArrayList<>(l2);
-
-        // Trier les sacs par identifiant pour une comparaison ordonnée
-        Collections.sort(copyL1, Comparator.comparingInt(s -> s.id));
-        Collections.sort(copyL2, Comparator.comparingInt(s -> s.id));
-
-        // Comparer les sacs un par un
-        for (int i = 0; i < copyL1.size(); i++) {
-            SacADos sac1 = copyL1.get(i);
-            SacADos sac2 = copyL2.get(i);
-
-            // Comparer les objets dans chaque sac
-            List<Objet> objets1 = new ArrayList<>(sac1.objets);
-            List<Objet> objets2 = new ArrayList<>(sac2.objets);
-
-            boolean areEqual = objets1.size() == objets2.size() &&
-                    IntStream.range(0, objets1.size())
-                            .allMatch(index -> objets1.get(index).equals(objets2.get(index)));
-           // System.out.println("eqaul:" + areEqual);
-
-            if (!areEqual) {
+        // on compare sac par sac
+        for (int i = 0; i < l1.size(); i++) { // forcement les deux listes vont contenir le meme ordre de sacs car
+                                              // l'etat initial contient la liste des sacs vides qui a ete crée dans le
+                                              // main et on place des objets dans le sac sans changer leur ordre
+            // trier les objets selon les id pour pouvoir les comparer
+            Collections.sort(l1.get(i).objets, new Comparator<Objet>() {
+                @Override
+                public int compare(Objet o1, Objet o2) {
+                    return Integer.compare(o1.id, o2.id);
+                }
+            });
+            Collections.sort(l2.get(i).objets, new Comparator<Objet>() {
+                @Override
+                public int compare(Objet o1, Objet o2) {
+                    return Integer.compare(o1.id, o2.id);
+                }
+            });
+            if (l1.get(i).objets.size() != l2.get(i).objets.size()) {
                 return false;
+            } else {
+                for (int j = 0; j < l1.get(i).objets.size(); j++) {
+                    if (l1.get(i).objets.get(j).id != l2.get(i).objets.get(j).id) {
+                        return false;
+
+                    }
+                }
+
             }
+
         }
+
         return true;
     }
-
     private int indice(List<SacADos> nouvelEtat, SacADos sac) {
         int index = -1; // Initialiser l'index à une valeur par défaut
 
@@ -175,20 +200,5 @@ public class BFS {
         }
         return index;
     }
-    
-    // pour verifier si un objet donné est deja placé dans l'un des sacs d'un etat
-    private boolean contenu_etat(List<SacADos> etat, Objet objet) {
-        boolean trouve = false;
-        for (SacADos sac : etat) {
-            if (sac.contient(objet)) {
-               // System.out.println("le sec est deja dans l'etat");
-                trouve = true;
-                break;
-            }
-        }
-
-        return trouve;
-    }
 
 }
-
