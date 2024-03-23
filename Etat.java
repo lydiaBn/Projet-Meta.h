@@ -2,12 +2,12 @@ import java.util.List;
 
 public class Etat {
     List<SacADos> sacs;
-    int g; // represente le cout : le cout d'un etat c le nombre d'operation efffectuée pour atteindre ce dernier ( une opération consiste de placer un objet donné dans un parmi les sacs de l'etat )
+    int g; // represente le cout : le cout d'un etat 
     int f;
 
-    public Etat(List<SacADos> sacs,int g){
+    public Etat(List<SacADos> sacs){
         this.sacs=sacs;
-        this.g=g;
+ 
      
     }
 

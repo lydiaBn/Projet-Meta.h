@@ -3,41 +3,46 @@ import java.util.stream.IntStream;
 
 public class BFS {
 
-    public void bfs(List<Objet> objets, List<SacADos> sacs) {
+    public List<SacADos> bfs(List<Objet> objets, List<SacADos> sacs) {
         Queue<List<SacADos>> queue = new LinkedList<>();
         List<List<SacADos>> ferme = new ArrayList();
         queue.add(sacs); // État initial : aucun objet placé dans les sacs i.e les sac sont vides
-
+        List<SacADos> bestSolution =sacs ;
         while (!queue.isEmpty()) {
             List<SacADos> etat = queue.poll();
-            ferme.add(etat);
+            
             // Vérifier si l'état actuel est une solution
             if (estSolution(etat, objets)) {
-
-                afficherSolution(etat);
-                return;
-
-            }
+                if(comparer(etat,bestSolution) ){
+                    bestSolution=etat;
+                 }
+              //afficherSolution(etatActuel);
+            //  return; ne pas retourner la l'etat but car on chereche à developper tout l'espace de recherche afin de determiner la meilleure solution
+          }
             // Générer les états suivants et les ajouter à la file
             List<List<SacADos>> succ = successuers(etat, objets);
             for (List<SacADos> s : succ) {
                 if (!containsState(ferme, s)) {
-                    //System.out.println("etat ajouté à ouvert");
-                    //afficherDEtat(s);
+                     //System.out.println("------------------------------------etat ajouté à ouvert -----------------------------------");
+                   // afficherDEtat(s);
                     queue.add(s);
                 }
 
             }
+            ferme.add(etat);
+          
         }
-        System.out.println("pas de solution");
+        return bestSolution;
     }
 
     // Vérifie si l'état actuel est une solution
     private boolean estSolution(List<SacADos> etat, List<Objet> objets) {
-        // Vérifie si tous les objets ont été placés dans les sacs à dos
-
+        boolean tousPlaces = true; // Variable pour suivre si tous les objets sont placés
+        List<Objet>  objetsNonPlaces =  new ArrayList<Objet>();
+        // Parcourir tous les objets
         for (Objet objet : objets) {
-            boolean estPlace = false;
+            boolean estPlace = false; // Variable pour suivre si l'objet est placé dans un des sacs
+            // Vérifier si l'objet est placé dans un des sacs
             for (SacADos sac : etat) {
                 for (Objet o : sac.objets) {
                     if (o.id == objet.id) {
@@ -46,17 +51,54 @@ public class BFS {
                     }
                 }
             }
-
             if (!estPlace) {
-                return false;
+                tousPlaces = false; // S'il y a un objet non placé, on marque tousPlaces à false
+                objetsNonPlaces.add( new Objet(objet.poids,objet.valeur,objet.id));
             }
         }
+    
+        // Si tous les objets sont placés ou certains ne peuvent pas être placés car trop lourds
+        if (tousPlaces) {
+            return true; // Déclarer l'état comme une solution
+        } else {
+            // parcourir les objets non placés
+            for (Objet objet : objetsNonPlaces) {
+                for (SacADos sac : etat) {
+                    if (sac.peutAjouter(objet)) { 
+                        return false;  // si l'objet peut etre placé alors ce n'est pas une solution
+                    }
+                }
+            }
+            //System.out.println("pas tous les objets sont placés mais c une solution");
+            //afficherDEtat(etat);
+            return true; // Si tous les objets non placés ne peuvent pas être placés dans les sacs, déclarer l'état comme une solution
+        }
+    }
+    
 
-        return true;
+    private int nbObjetsPlaces(List<SacADos> etat, List<Objet> objets) {
+      int nb=0;
+      for (Objet objet : objets) {
+      
+        // Vérifier si l'objet est placé dans un des sacs
+        for (SacADos sac : etat) {
+            for (Objet o : sac.objets) {
+                if (o.id == objet.id) {
+                     nb++;
+                    break;
+                }
+            }
+        }
+       
+    }
+       return nb;
     }
 
+ 
+
+
     // Affiche la solution
-    private void afficherSolution(List<SacADos> etat) {
+    public static void afficherSolution(List<SacADos> etat) {
         System.out.println("Solution trouvée :");
         for (SacADos sac : etat) {
             System.out.println("Sac à dos " + sac.id + ": Capacité = " + sac.capaciteMax);
@@ -199,6 +241,27 @@ public class BFS {
             }
         }
         return index;
+    }
+    private boolean comparer(List<SacADos> etat1, List<SacADos>  etat2) {
+        int somVal1 = 0; 
+        int somVal2 = 0; 
+        int nbO1 = 0; 
+        int nbO2 = 0; 
+
+        for (int i = 0; i < etat1.size(); i++) { // meme boucle pour parcourir les deux etats en meme temps , car les deux etats ont exactement le meme nombre de sacs
+            nbO1 += etat1.get(i).objets.size();
+            for (int j = 0; j < etat1.get(i).objets.size(); j++) {
+
+               somVal1 += etat1.get(i).objets.get(j).valeur;
+            }
+            nbO2 += etat2.get(i).objets.size();
+            for (int j = 0; j < etat2.get(i).objets.size(); j++) {
+
+                somVal1 += etat2.get(i).objets.get(j).valeur;
+             }
+
+        }
+        return somVal1 > somVal2 && nbO1 > nbO2; // est ce que l'etat 1 est meilleur que l'etat 2 ?
     }
 
 }

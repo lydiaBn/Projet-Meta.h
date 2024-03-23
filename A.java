@@ -6,17 +6,17 @@ import java.util.stream.IntStream;
 
 public class A {
 
-    public void a(List<Objet> objets, List<SacADos> sacs) {
+    public void a(List<Objet> objets, List<SacADos> sacs,int W) {
 
         List<Etat> ouvert = new ArrayList<>();
         List<List<SacADos>> ferme = new ArrayList();
 
         // creer l'etat initial
-        Etat e = new Etat(sacs, 0);
+        Etat e = new Etat(sacs);
         e.setF(objets.size()); // equivalent a faire e.setF(e.getG() + h(e, objets)); car e.getG() =0 vu
-                               // qu'acune opération s'est effecutée pour le moment et h(e, objets) qui est
-                               // cencée retournée le nombre d'objets qui ne sont pas encore placés dans un
-                               // etat va retourner le nombre de tout les objets car nous avons rien placer
+                               // qu'acun objet n'est lacé pour le moment donc la somme des valeurs est égale à 0 et h(e, objets) qui est
+                               // cencée retourner le nombre d'objets qui ne sont pas encore placés dans un
+                               // etat va retourner le nombre de tous les objets car nous avons rien mis dans les sacs
                                // pour l'instant
 
         ouvert.add(e);
@@ -32,7 +32,7 @@ public class A {
 
             }
             // Générer les états suivants et les ajouter à la file
-            List<Etat> successuers = successuers(etat, objets);
+            List<Etat> successuers = successuers(etat, objets,W);
             for (Etat successuer : successuers) {
                 if (!containsState(ferme, successuer.sacs)) {
                     ouvert.add(successuer);
@@ -54,26 +54,44 @@ public class A {
 
     // Vérifie si l'état actuel est une solution
     private boolean estSolution(List<SacADos> etat, List<Objet> objets) {
-        // Vérifie si tous les objets ont été placés dans les sacs à dos
-
+        boolean tousPlaces = true; // Variable pour suivre si tous les objets sont placés
+        List<Objet>  objetsNonPlaces =  new ArrayList<Objet>();
+        // Parcourir tous les objets
         for (Objet objet : objets) {
-            boolean estPlace = false;
+            boolean estPlace = false; // Variable pour suivre si l'objet est placé dans un des sacs
+            // Vérifier si l'objet est placé dans un des sacs
             for (SacADos sac : etat) {
                 for (Objet o : sac.objets) {
-                    if (o.id==objet.id) {
+                    if (o.id == objet.id) {
                         estPlace = true;
                         break;
                     }
                 }
-            }  
-            
+            }
             if (!estPlace) {
-                return false;
+                tousPlaces = false; // S'il y a un objet non placé, on marque tousPlaces à false
+                objetsNonPlaces.add( new Objet(objet.poids,objet.valeur,objet.id));
             }
         }
-
-        return true;
+    
+        // Si tous les objets sont placés ou certains ne peuvent pas être placés car trop lourds
+        if (tousPlaces) {
+            return true; // Déclarer l'état comme une solution
+        } else {
+            // parcourir les objets non placés
+            for (Objet objet : objetsNonPlaces) {
+                for (SacADos sac : etat) {
+                    if (sac.peutAjouter(objet)) { 
+                        return false;  // si l'objet peut etre placé alors ce n'est pas une solution
+                    }
+                }
+            }
+            //System.out.println("pas tous les objets sont placés mais c une solution");
+            //afficherDEtat(etat);
+            return true; // Si tous les objets non placés ne peuvent pas être placés dans les sacs, déclarer l'état comme une solution
+        }
     }
+    
 
     // Affiche la solution
     private void afficherSolution(Etat etat) {
@@ -101,7 +119,7 @@ public class A {
 
     }
 
-    private List<Etat> successuers(Etat etat, List<Objet> objets) {
+    private List<Etat> successuers(Etat etat, List<Objet> objets, int W) {
         List<Etat> successuers = new ArrayList<>();
         boolean ajoute = false;
 
@@ -129,15 +147,16 @@ public class A {
                             nouvelEtatSacs.add(nouveauSac);
                         }
                        
-                        Etat nouvelEtat = new Etat(nouvelEtatSacs, etat.getG() + 1);
+                        Etat nouvelEtat = new Etat(nouvelEtatSacs);
                        
 
                         // trouver l'indice du sac ou on va placer notre objet
                         int index = indice(nouvelEtat.sacs, sac);
 
-                        // mettre a jour le sac en lui ajoutant l'objet
+                        // mettre a jour le sac en lui rajoutant l'objet
                         nouvelEtat.getSacs().get(index).ajouterObjet(objet);
-
+                        // calculer g 
+                        nouvelEtat.setG( g(nouvelEtat));
                         // calculer la valeur f de l'etat
                         nouvelEtat.setF(nouvelEtat.getG() + h(nouvelEtat, objets));
 
@@ -245,5 +264,27 @@ public class A {
         }
 
         return nb_sacs_non_places;
+    }
+    // somme des poids dans les diffrents sacs 
+    private int g(Etat e ) {
+        int somValeur= 0;
+        for (SacADos sac : e.sacs) {
+        for (Objet objet : sac.objets) {
+            somValeur += objet.valeur;
+        }
+    }
+        return somValeur;
+    }
+
+    // l'heuristique :  W - poids actuel 
+    private int h1(Etat e, List<Objet> objets,int W) {
+        int somPoids= 0;
+        for (SacADos sac : e.sacs) {
+        for (Objet objet : sac.objets) {
+            somPoids += objet.poids;
+        }
+    }
+
+        return W-somPoids;
     }
 }
