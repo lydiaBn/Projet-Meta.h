@@ -22,9 +22,9 @@ public class BFS {
             // Générer les états suivants et les ajouter à la file
             List<List<SacADos>> succ = successuers(etat, objets);
             for (List<SacADos> s : succ) {
-                if (!containsState(ferme, s)) {
+                if (!containsState(ferme, s) && !containsState2(queue, s)) {
                      //System.out.println("------------------------------------etat ajouté à ouvert -----------------------------------");
-                   // afficherDEtat(s);
+                    //afficherDEtat(s);
                     queue.add(s);
                 }
 
@@ -195,6 +195,16 @@ public class BFS {
         return false;
     }
 
+    public boolean containsState2(Queue<List<SacADos>> etatsDansOuvert, List<SacADos> etat) {
+
+        for (List<SacADos> e : etatsDansOuvert) {
+
+            if (identiques(e, etat)) {
+                return true;
+            }
+        }
+        return false;
+    }
     public boolean identiques(List<SacADos> l1, List<SacADos> l2) {
 
         // on compare sac par sac
