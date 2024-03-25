@@ -13,11 +13,8 @@ public class A {
 
         // creer l'etat initial
         Etat e = new Etat(sacs);
-        e.setF(objets.size()); // equivalent a faire e.setF(e.getG() + h(e, objets)); car e.getG() =0 vu
-                               // qu'acun objet n'est lacé pour le moment donc la somme des valeurs est égale à 0 et h(e, objets) qui est
-                               // cencée retourner le nombre d'objets qui ne sont pas encore placés dans un
-                               // etat va retourner le nombre de tous les objets car nous avons rien mis dans les sacs
-                               // pour l'instant
+        //e.setF(objets.size()); 
+        e.setF(W);  // initialemnt g=0 car aucun objet n'est placé et h= somme des valeurs de tous les objets qui est W calculé lors de la generation des objets 
 
         ouvert.add(e);
 
@@ -41,7 +38,7 @@ public class A {
                     Collections.sort(ouvert, new Comparator<Etat>() {
                         @Override
                         public int compare(Etat e1, Etat e2) {
-                            return Integer.compare(e1.f, e2.f);
+                            return Double.compare(e1.f, e2.f);
                         }
                     });
 
@@ -97,12 +94,12 @@ public class A {
     private void afficherSolution(Etat etat) {
         System.out.println(
                 "Solution trouvée avec cout egale à " + etat.getG() + " et valeur de f egale à " + etat.getF());
-        for (SacADos sac : etat.getSacs()) {
-            System.out.println("Sac à dos : Capacité = " + sac.capaciteMax);
-            for (Objet objet : sac.objets) {
-                System.out.println("   Objet : Poids = " + objet.poids + ", Valeur = " + objet.valeur);
-            }
-        }
+                for (SacADos sac : etat.sacs) {
+                    System.out.println("Sac à dos " + sac.id + ": Capacité = " + sac.capaciteMax);
+                    for (Objet objet : sac.objets) {
+                        System.out.println("   Objet :" + objet.id + " Poids = " + objet.poids + ", Valeur = " + objet.valeur);
+                    }
+                }
 
     }
 
@@ -158,7 +155,7 @@ public class A {
                         // calculer g 
                         nouvelEtat.setG( g(nouvelEtat));
                         // calculer la valeur f de l'etat
-                        nouvelEtat.setF(nouvelEtat.getG() + h(nouvelEtat, objets));
+                        nouvelEtat.setF(  nouvelEtat.getG() + h(nouvelEtat, objets));
 
                         // afficher l'etat
                         //afficherDEtat(nouvelEtat);
@@ -253,7 +250,9 @@ public class A {
         return true;
     }
 
-    // l'heuristique : le nombre d'objets non encore placé dans des sacs
+
+    /* 
+     * // l'heuristique : le nombre d'objets non encore placé dans des sacs
     private int h(Etat e, List<Objet> objets) {
         int nb_sacs_non_places = 0;
         for (Objet objet : objets) {
@@ -266,14 +265,14 @@ public class A {
         return nb_sacs_non_places;
     }
     // somme des poids dans les diffrents sacs 
-    private int g(Etat e ) {
+    private double g(Etat e ) {
         int somValeur= 0;
         for (SacADos sac : e.sacs) {
         for (Objet objet : sac.objets) {
             somValeur += objet.valeur;
         }
     }
-        return somValeur;
+        return 1 / somValeur;
     }
 
     // l'heuristique :  W - poids actuel 
@@ -287,4 +286,32 @@ public class A {
 
         return W-somPoids;
     }
+}
+    */
+
+    
+ // somme des poids des objets  placés
+  private int g(Etat e ) {
+        int somPoids= 0;
+        for (SacADos sac : e.sacs) {
+        for (Objet objet : sac.objets) {
+            somPoids += objet.poids;
+        }
+    }
+        return somPoids;
+    } 
+
+     // somme des valeurs  des objets non placés
+     private int h(Etat e, List<Objet> objets) {
+        int valeurs_obj_non_places = 0;
+        for (Objet objet : objets) {
+            if (!contenu_etat(e.getSacs(), objet)) {
+
+                valeurs_obj_non_places += objet.valeur;
+            }
+        }
+
+        return valeurs_obj_non_places;
+    }
+    
 }
